@@ -10,7 +10,8 @@ var defaults = {
   store:                       'simple-auth-session-store:local-storage',
   localStorageKey:             'ember_simple_auth:session',
   crossOriginWhitelist:        [],
-  applicationRootUrl:          null
+  applicationRootUrl:          null,
+  logDebugMessages:            false
 };
 
 /**
@@ -148,6 +149,17 @@ export default {
   applicationRootUrl: defaults.applicationRootUrl,
 
   /**
+   Whether to
+
+   @property logDebugMessages
+   @readOnly
+   @static
+   @type Boolean
+   @default false
+  */
+  logDebugMessages: defaults.logDebugMessages,
+
+    /**
     @method load
     @private
   */
