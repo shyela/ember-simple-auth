@@ -35,6 +35,10 @@ export default Ember.Mixin.create({
       @param {Object} options Any options the authenticator needs to authenticate the session
     */
     authenticate: function(options) {
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside AuthenticationControllerMixin#authenticate: options = ');
+        Ember.Logger.debug(options);
+      }
       var authenticator = this.get('authenticator');
       Ember.assert('AuthenticationControllerMixin/LoginControllerMixin require the authenticator property to be set on the controller', !Ember.isEmpty(authenticator));
       return this.get(Configuration.sessionPropertyName).authenticate(authenticator, options);

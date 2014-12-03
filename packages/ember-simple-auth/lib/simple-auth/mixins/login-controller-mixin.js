@@ -45,6 +45,9 @@ export default Ember.Mixin.create(AuthenticationControllerMixin, {
       @method actions.authenticate
     */
     authenticate: function() {
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside LoginControllerMixin#authenticate');
+      }
       var data = this.getProperties('identification', 'password');
       this.set('password', null);
       return this._super(data);

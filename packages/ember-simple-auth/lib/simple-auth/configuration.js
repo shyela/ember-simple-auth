@@ -149,13 +149,13 @@ export default {
   applicationRootUrl: defaults.applicationRootUrl,
 
   /**
-   Whether to
+    Whether to log debug messages to the console
 
-   @property logDebugMessages
-   @readOnly
-   @static
-   @type Boolean
-   @default false
+    @property logDebugMessages
+    @readOnly
+    @static
+    @type Boolean
+    @default false
   */
   logDebugMessages: defaults.logDebugMessages,
 

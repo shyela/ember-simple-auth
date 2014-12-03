@@ -69,6 +69,15 @@ export default Base.extend({
   identificationAttributeName: 'user_email',
 
   /**
+    Whether to log debug messages to the console
+
+    @property logDebugMessages
+    @type Boolean
+    @default false
+  */
+  logDebugMessages: false,
+
+  /**
     @method init
     @private
   */
@@ -77,6 +86,15 @@ export default Base.extend({
     this.resourceName                 = Configuration.resourceName;
     this.tokenAttributeName           = Configuration.tokenAttributeName;
     this.identificationAttributeName  = Configuration.identificationAttributeName;
+    this.logDebugMessages             = Configuration.logDebugMessages;
+
+    if (this.logDebugMessages) {
+      Ember.Logger.debug('** Ember Simple Auth Devise ** Inside DeviseAuthenticator#init: ' +
+        ' serverTokenEndpoint = ' + this.serverTokenEndpoint +
+        ', resourceName = ' + this.resourceName +
+        ', tokenAttributeName = ' + this.tokenAttributeName +
+        ', identificationAttributeName = ' + this.identificationAttributeName );
+    }
   },
 
   /**
@@ -89,9 +107,19 @@ export default Base.extend({
     @return {Ember.RSVP.Promise} A promise that when it resolves results in the session being authenticated
   */
   restore: function(properties) {
+    if (this.logDebugMessages) {
+      Ember.Logger.debug('** Ember Simple Auth Devise ** Inside DeviseAuthenticator#restore: properties = ');
+      Ember.Logger.debug(properties);
+    }
+
     var _this            = this;
     var propertiesObject = Ember.Object.create(properties);
     return new Ember.RSVP.Promise(function(resolve, reject) {
+      if (_this.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth Devise ** Inside DeviseAuthenticator#restore: token = ' + propertiesObject.get(_this.tokenAttributeName) +
+          ', user = ' + propertiesObject.get(_this.identificationAttributeName));
+      }
+
       if (!Ember.isEmpty(propertiesObject.get(_this.tokenAttributeName)) && !Ember.isEmpty(propertiesObject.get(_this.identificationAttributeName))) {
         resolve(properties);
       } else {
@@ -114,6 +142,11 @@ export default Base.extend({
     @return {Ember.RSVP.Promise} A promise that resolves when an auth token and email is successfully acquired from the server and rejects otherwise
   */
   authenticate: function(credentials) {
+    if (this.logDebugMessages) {
+      Ember.Logger.debug('** Ember Simple Auth Devise ** Inside DeviseAuthenticator#authenticate: credentials = ');
+      Ember.Logger.debug(credentials);
+    }
+
     var _this = this;
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var data                 = {};
@@ -123,10 +156,18 @@ export default Base.extend({
       };
       _this.makeRequest(data).then(function(response) {
         Ember.run(function() {
+          if (_this.logDebugMessages) {
+            Ember.Logger.debug('** Ember Simple Auth Devise ** Inside DeviseAuthenticator#authenticate: auth request returned success: response = ');
+            Ember.Logger.debug(response);
+          }
           resolve(response);
         });
       }, function(xhr, status, error) {
         Ember.run(function() {
+          if (_this.logDebugMessages) {
+            Ember.Logger.debug('** Ember Simple Auth Devise ** Inside DeviseAuthenticator#authenticate: auth request returned failure: status = ' + status + ', error = ' + error + ', xhr = ');
+            Ember.Logger.debug(xhr);
+          }
           reject(xhr.responseJSON || xhr.responseText);
         });
       });
@@ -140,6 +181,10 @@ export default Base.extend({
     @return {Ember.RSVP.Promise} A resolving promise
   */
   invalidate: function() {
+    if (this.logDebugMessages) {
+      Ember.Logger.debug('** Ember Simple Auth Devise ** Inside DeviseAuthenticator#invalidate');
+    }
+
     return Ember.RSVP.resolve();
   },
 
