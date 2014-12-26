@@ -50,7 +50,8 @@ module.exports = function(grunt) {
     'copy:plain_bower',
     'copy:amd_download',
     'copy:amd_bower',
-    'copy:docs'
+    'copy:docs',
+    'copy:bower_json'
   ]);
 
   var packages = grunt.file.expand('packages/*/package.json').reduce(function(acc, package) {
@@ -167,6 +168,14 @@ module.exports = function(grunt) {
     },
 
     copy: {
+      bower_json: {
+        files: packages.map(function(pkg) {
+          return {
+            src: ['bower.json.dist'],
+            dest: 'dist/bower/bower.json'
+          };
+        })
+      },
       plain_download: {
         files: packages.map(function(pkg) {
           return {
