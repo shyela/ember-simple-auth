@@ -207,7 +207,7 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
   */
   invalidate: function() {
     if (Configuration.logDebugMessages) {
-      Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invadiate' );
+      Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invalidate' );
     }
 
     Ember.assert('Session#invalidate requires the session to be authenticated', this.get('isAuthenticated'));
@@ -216,14 +216,14 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
       var authenticator = _this.container.lookup(_this.authenticator);
       authenticator.invalidate(_this.content).then(function() {
         if (Configuration.logDebugMessages) {
-          Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invadiate: invalidation succeeded' );
+          Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invalidate: invalidation succeeded' );
         }
         authenticator.off('sessionDataUpdated');
         _this.clear(true);
         resolve();
       }, function(error) {
         if (Configuration.logDebugMessages) {
-          Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invadiate: invalidation failed: error = ' + error );
+          Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invalidate: invalidation failed: error = ' + error );
         }
         _this.trigger('sessionInvalidationFailed', error);
         reject(error);
