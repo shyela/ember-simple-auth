@@ -3,7 +3,7 @@ import loadConfig from 'simple-auth/utils/load-config';
 var defaults = {
   serverTokenEndpoint:         '/users/sign_in',
   resourceName:                'user',
-  tokenAttributeName:          'user_token',
+  tokenAttributeName:          'token',
   identificationAttributeName: 'user_email',
   logDebugMessages:            false
 };
@@ -55,12 +55,16 @@ export default {
     @readOnly
     @static
     @type String
-    @default 'user_token'
+    @default 'token'
   */
   tokenAttributeName: defaults.tokenAttributeName,
 
   /**
-    The email attribute name.
+    The identification attribute name. This is the parameter that is sent to
+    [serverTokenEndpoint](#SimpleAuth-Configuration-Devise-serverTokenEndpoint)
+    during the authentication process, is expected in the response and is used
+    by the
+    [Devise authorizer](#SimpleAuth-Authorizers-Devise).
 
     @property identificationAttributeName
     @readOnly

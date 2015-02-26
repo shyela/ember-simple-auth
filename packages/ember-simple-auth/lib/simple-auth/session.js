@@ -159,7 +159,7 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
   authenticate: function() {
     var args          = Array.prototype.slice.call(arguments);
     var authenticator = args.shift();
-    Ember.assert('Session#authenticate requires the authenticator factory to be specified, was ' + authenticator, !Ember.isEmpty(authenticator));
+    Ember.assert('Session#authenticate requires the authenticator factory to be specified, was "' + authenticator + '"!', !Ember.isEmpty(authenticator));
     if (Configuration.logDebugMessages) {
       Ember.Logger.debug('** Ember Simple Auth ** Inside Session#authenticate: authenticator = ');
       Ember.Logger.debug(authenticator);
@@ -167,7 +167,7 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
 
     var _this            = this;
     var theAuthenticator = this.container.lookup(authenticator);
-    Ember.assert('No authenticator for factory "' + authenticator + '" could be found', !Ember.isNone(theAuthenticator));
+    Ember.assert('No authenticator for factory "' + authenticator + '" could be found!', !Ember.isNone(theAuthenticator));
     return new Ember.RSVP.Promise(function(resolve, reject) {
       theAuthenticator.authenticate.apply(theAuthenticator, args).then(function(content) {
         if (Configuration.logDebugMessages) {
@@ -210,7 +210,7 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
       Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invalidate' );
     }
 
-    Ember.assert('Session#invalidate requires the session to be authenticated', this.get('isAuthenticated'));
+    Ember.assert('Session#invalidate requires the session to be authenticated!', this.get('isAuthenticated'));
     var _this = this;
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var authenticator = _this.container.lookup(_this.authenticator);
