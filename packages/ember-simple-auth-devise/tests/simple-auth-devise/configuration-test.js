@@ -18,14 +18,14 @@ describe('Configuration', function() {
   });
 
   describe('tokenAttributeName', function() {
-    it('defaults to "user_token"', function() {
-      expect(Configuration.tokenAttributeName).to.eql('user_token');
+    it('defaults to "token"', function() {
+      expect(Configuration.tokenAttributeName).to.eql('token');
     });
   });
 
   describe('identificationAttributeName', function() {
-    it('defaults to "user_email"', function() {
-      expect(Configuration.identificationAttributeName).to.eq('user_email');
+    it('defaults to "email"', function() {
+      expect(Configuration.identificationAttributeName).to.eq('email');
     });
   });
 

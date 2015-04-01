@@ -22,9 +22,7 @@ import Configuration from './../configuration';
 
   ```js
   // app/controllers/login.js
-  import LoginControllerMixin from 'simple-auth/mixins/login-controller-mixin';
-
-  export default Ember.Controller.extend(LoginControllerMixin, {
+  export default Ember.Controller.extend({
     rememberMe: false,
 
     rememberMeChanged: function() {
@@ -96,6 +94,18 @@ export default Base.extend({
   _syncDataTimeout: null,
 
   /**
+    @property renewExpirationTimeout
+    @private
+  */
+  renewExpirationTimeout: null,
+
+  /**
+    @property isPageVisible
+    @private
+  */
+  isPageVisible: null,
+
+  /**
     @method init
     @private
   */
@@ -103,7 +113,9 @@ export default Base.extend({
     this.cookieName           = Configuration.cookieName;
     this.cookieExpirationTime = Configuration.cookieExpirationTime;
     this.cookieDomain         = Configuration.cookieDomain;
+    this.isPageVisible        = this.initPageVisibility();
     this.syncData();
+    this.renewExpiration();
   },
 
   /**
@@ -114,7 +126,7 @@ export default Base.extend({
   */
   persist: function(data) {
     data           = JSON.stringify(data || {});
-    var expiration = !!this.cookieExpirationTime ? new Date().getTime() + this.cookieExpirationTime * 1000 : null;
+    var expiration = this.calculateExpirationTime();
     this.write(data, expiration);
     this._lastData = this.restore();
   },
@@ -126,7 +138,7 @@ export default Base.extend({
     @return {Object} All data currently persisted in the cookie
   */
   restore: function() {
-    var data = this.read();
+    var data = this.read(this.cookieName);
     if (Ember.isEmpty(data)) {
       return {};
     } else {
@@ -150,9 +162,19 @@ export default Base.extend({
     @method read
     @private
   */
-  read: function() {
-    var value = document.cookie.match(new RegExp(this.cookieName + name + '=([^;]+)')) || [];
+  read: function(name) {
+    var value = document.cookie.match(new RegExp(name + '=([^;]+)')) || [];
     return decodeURIComponent(value[1] || '');
+  },
+
+  /**
+    @method calculateExpirationTime
+    @private
+  */
+  calculateExpirationTime: function() {
+    var cachedExpirationTime = this.read(this.cookieName + ':expiration_time');
+    cachedExpirationTime     = !!cachedExpirationTime ? new Date().getTime() + cachedExpirationTime * 1000 : null;
+    return !!this.cookieExpirationTime ? new Date().getTime() + this.cookieExpirationTime * 1000 : cachedExpirationTime;
   },
 
   /**
@@ -160,11 +182,15 @@ export default Base.extend({
     @private
   */
   write: function(value, expiration) {
-    var path    = '; path=/';
-    var domain  = Ember.isEmpty(this.cookieDomain) ? '' : '; domain=' + this.cookieDomain;
-    var expires = Ember.isEmpty(expiration) ? '' : '; expires=' + new Date(expiration).toUTCString();
-    var secure  = !!this._secureCookies ? ';secure' : '';
+    var path        = '; path=/';
+    var domain      = Ember.isEmpty(this.cookieDomain) ? '' : '; domain=' + this.cookieDomain;
+    var expires     = Ember.isEmpty(expiration) ? '' : '; expires=' + new Date(expiration).toUTCString();
+    var secure      = !!this._secureCookies ? ';secure' : '';
     document.cookie = this.cookieName + '=' + encodeURIComponent(value) + domain + path + expires + secure;
+    if(expiration !== null) {
+      var cachedExpirationTime = this.read(this.cookieName + ':expiration_time');
+      document.cookie = this.cookieName + ':expiration_time=' + encodeURIComponent(this.cookieExpirationTime || cachedExpirationTime) + domain + path + expires + secure;
+    }
   },
 
   /**
@@ -180,6 +206,55 @@ export default Base.extend({
     if (!Ember.testing) {
       Ember.run.cancel(this._syncDataTimeout);
       this._syncDataTimeout = Ember.run.later(this, this.syncData, 500);
+    }
+  },
+
+  /**
+    @method initPageVisibility
+    @private
+  */
+  initPageVisibility: function(){
+    var keys = {
+      hidden:       'visibilitychange',
+      webkitHidden: 'webkitvisibilitychange',
+      mozHidden:    'mozvisibilitychange',
+      msHidden:     'msvisibilitychange'
+    };
+    for (var stateKey in keys) {
+      if (stateKey in document) {
+        var eventKey = keys[stateKey];
+        break;
+      }
+    }
+    return function() {
+      return !document[stateKey];
+    };
+  },
+
+  /**
+    @method renew
+    @private
+  */
+  renew: function() {
+    var data = this.restore();
+    if (!Ember.isEmpty(data) && data !== {}) {
+      data           = Ember.typeOf(data) === 'string' ? data : JSON.stringify(data || {});
+      var expiration = this.calculateExpirationTime();
+      this.write(data, expiration);
+    }
+  },
+
+  /**
+    @method renewExpiration
+    @private
+  */
+  renewExpiration: function() {
+    if (this.isPageVisible()) {
+      this.renew();
+    }
+    if (!Ember.testing) {
+      Ember.run.cancel(this.renewExpirationTimeout);
+      this.renewExpirationTimeout = Ember.run.later(this, this.renewExpiration, 60000);
     }
   }
 });

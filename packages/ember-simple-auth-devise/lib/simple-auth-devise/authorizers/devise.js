@@ -2,9 +2,9 @@ import Base from 'simple-auth/authorizers/base';
 import Configuration from './../configuration';
 
 /**
-  Authenticator that works with the Ruby gem
-  [Devise](https://github.com/plataformatec/devise) by sending the `user_token`
-  and `user_email` properties from the session in the `Authorization` header.
+  Authorizer that works with the Ruby gem
+  [Devise](https://github.com/plataformatec/devise) by sending the `token` and
+  `email` properties from the session in the `Authorization` header.
 
   __As token authentication is not actually part of devise anymore, the server
   needs to implement some customizations__ to work with this authenticator -
@@ -27,9 +27,9 @@ export default Base.extend({
 
     @property tokenAttributeName
     @type String
-    @default 'user_token'
+    @default 'token'
   */
-  tokenAttributeName: 'user_token',
+  tokenAttributeName: 'token',
 
   /**
     The identification attribute name.
@@ -39,9 +39,9 @@ export default Base.extend({
 
     @property identificationAttributeName
     @type String
-    @default 'user_email'
+    @default 'email'
   */
-  identificationAttributeName: 'user_email',
+  identificationAttributeName: 'email',
 
   /**
     Whether to log debug messages to the console
@@ -53,7 +53,7 @@ export default Base.extend({
   logDebugMessages: false,
 
   /**
-    Authorizes an XHR request by sending the `user_token` and `user_email`
+    Authorizes an XHR request by sending the `token` and `email`
     properties from the session in the `Authorization` header:
 
     ```
@@ -79,23 +79,27 @@ export default Base.extend({
     }
   },
 
-authorize: function(jqXHR, requestOptions) {
+  authorize: function(jqXHR, requestOptions) {
     if (this.logDebugMessages) {
       Ember.Logger.debug('** Ember Simple Auth Devise ** Inside DeviseAuthorizer#authorize');
     }
 
-    var userToken          = this.get('session').get(this.tokenAttributeName);
-    var userIdentification = this.get('session').get(this.identificationAttributeName);
+    var secureData         = this.get('session.secure');
+    var userToken          = secureData[this.tokenAttributeName];
+    var userIdentification = secureData[this.identificationAttributeName];
+
     if (this.logDebugMessages) {
       Ember.Logger.debug('** Ember Simple Auth Devise ** Inside DeviseAuthorizer#authorize: userToken = ' + userToken + ', userIdentification = ' + userIdentification + ', isAuthenticated = ' + this.get('session.isAuthenticated') );
     }
 
     if (this.get('session.isAuthenticated') && !Ember.isEmpty(userToken) && !Ember.isEmpty(userIdentification)) {
       var authData = this.tokenAttributeName + '="' + userToken + '", ' + this.identificationAttributeName + '="' + userIdentification + '"';
+
       if (this.logDebugMessages) {
         Ember.Logger.debug('** Ember Simple Auth Devise ** Inside DeviseAuthorizer#authorize: setting authentication token into request = ');
         Ember.Logger.debug(authData);
       }
+
       jqXHR.setRequestHeader('Authorization', 'Token ' + authData);
     }
   }

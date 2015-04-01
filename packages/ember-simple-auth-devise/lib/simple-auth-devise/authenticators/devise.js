@@ -52,9 +52,9 @@ export default Base.extend({
 
     @property tokenAttributeName
     @type String
-    @default 'user_token'
+    @default 'token'
   */
-  tokenAttributeName: 'user_token',
+  tokenAttributeName: 'token',
 
   /**
     The identification attribute name.
@@ -64,9 +64,9 @@ export default Base.extend({
 
     @property identificationAttributeName
     @type String
-    @default 'user_email'
+    @default 'email'
   */
-  identificationAttributeName: 'user_email',
+  identificationAttributeName: 'email',
 
   /**
     Whether to log debug messages to the console
@@ -99,8 +99,8 @@ export default Base.extend({
 
   /**
     Restores the session from a set of session properties; __will return a
-    resolving promise when there's a non-empty `user_token` and a non-empty
-    `user_email` in the `properties`__ and a rejecting promise otherwise.
+    resolving promise when there's a non-empty `token` and a non-empty
+    `email` in the `properties`__ and a rejecting promise otherwise.
 
     @method restore
     @param {Object} properties The properties to restore the session from
@@ -151,9 +151,10 @@ export default Base.extend({
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var data                 = {};
       data[_this.resourceName] = {
-        email:    credentials.identification,
         password: credentials.password
       };
+      data[_this.resourceName][_this.identificationAttributeName] = credentials.identification;
+
       _this.makeRequest(data).then(function(response) {
         Ember.run(function() {
           if (_this.logDebugMessages) {

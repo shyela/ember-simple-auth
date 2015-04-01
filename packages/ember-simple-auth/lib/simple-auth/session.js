@@ -1,5 +1,3 @@
-import Configuration from './configuration';
-
 /**
   __The session provides access to the current authentication state as well as
   any data the authenticator resolved with__ (see
@@ -137,7 +135,7 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     @property content
     @private
   */
-  content: {},
+  content: { secure: {} },
 
   /**
     Authenticates the session with an `authenticator` and appropriate
@@ -159,15 +157,15 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
   authenticate: function() {
     var args          = Array.prototype.slice.call(arguments);
     var authenticator = args.shift();
-    Ember.assert('Session#authenticate requires the authenticator factory to be specified, was ' + authenticator, !Ember.isEmpty(authenticator));
     if (Configuration.logDebugMessages) {
       Ember.Logger.debug('** Ember Simple Auth ** Inside Session#authenticate: authenticator = ');
       Ember.Logger.debug(authenticator);
     }
 
+    Ember.assert('Session#authenticate requires the authenticator factory to be specified, was "' + authenticator + '"!', !Ember.isEmpty(authenticator));
     var _this            = this;
     var theAuthenticator = this.container.lookup(authenticator);
-    Ember.assert('No authenticator for factory "' + authenticator + '" could be found', !Ember.isNone(theAuthenticator));
+    Ember.assert('No authenticator for factory "' + authenticator + '" could be found!', !Ember.isNone(theAuthenticator));
     return new Ember.RSVP.Promise(function(resolve, reject) {
       theAuthenticator.authenticate.apply(theAuthenticator, args).then(function(content) {
         if (Configuration.logDebugMessages) {
@@ -210,7 +208,7 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
       Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invalidate' );
     }
 
-    Ember.assert('Session#invalidate requires the session to be authenticated', this.get('isAuthenticated'));
+    Ember.assert('Session#invalidate requires the session to be authenticated!', this.get('isAuthenticated'));
     var _this = this;
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var authenticator = _this.container.lookup(_this.authenticator);
@@ -243,18 +241,18 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     var _this = this;
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var restoredContent = _this.store.restore();
-      var authenticator   = restoredContent.authenticator;
+      var authenticator   = (restoredContent.secure || {}).authenticator;
       if (!!authenticator) {
-        delete restoredContent.authenticator;
-        _this.container.lookup(authenticator).restore(restoredContent).then(function(content) {
+        delete restoredContent.secure.authenticator;
+        _this.container.lookup(authenticator).restore(restoredContent.secure).then(function(content) {
           _this.setup(authenticator, content);
           resolve();
         }, function() {
-          _this.store.clear();
+          _this.clear();
           reject();
         });
       } else {
-        _this.store.clear();
+        _this.clear();
         reject();
       }
     });
@@ -264,20 +262,20 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     @method setup
     @private
   */
-  setup: function(authenticator, content, trigger) {
+
+  setup: function(authenticator, secureContent, trigger) {
+    trigger = !!trigger && !this.get('isAuthenticated');
     if (Configuration.logDebugMessages) {
       Ember.Logger.debug('** Ember Simple Auth ** Inside Session#setup: trigger = ' + trigger + ', content = ');
       Ember.Logger.debug(content);
     }
-
-    content = Ember.merge(Ember.merge({}, this.content), content);
-    trigger = !!trigger && !this.get('isAuthenticated');
+    
     this.beginPropertyChanges();
     this.setProperties({
       isAuthenticated: true,
-      authenticator:   authenticator,
-      content:         content
+      authenticator:   authenticator
     });
+    Ember.set(this.content, 'secure', secureContent);
     this.bindToAuthenticatorEvents();
     this.updateStore();
     this.endPropertyChanges();
@@ -299,10 +297,10 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     this.beginPropertyChanges();
     this.setProperties({
       isAuthenticated: false,
-      authenticator:   null,
-      content:         {}
+      authenticator:   null
     });
-    this.store.clear();
+    Ember.set(this.content, 'secure', {});
+    this.updateStore();
     this.endPropertyChanges();
     if (trigger) {
       this.trigger('sessionInvalidationSucceeded');
@@ -314,6 +312,7 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     @private
   */
   setUnknownProperty: function(key, value) {
+    Ember.assert('"secure" is a reserved key used by Ember Simple Auth!', key !== 'secure');
     var result = this._super(key, value);
     this.updateStore();
     return result;
@@ -326,11 +325,9 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
   updateStore: function() {
     var data = this.content;
     if (!Ember.isEmpty(this.authenticator)) {
-      data = Ember.merge({ authenticator: this.authenticator }, data);
+      Ember.set(data, 'secure', Ember.merge({ authenticator: this.authenticator }, data.secure || {}));
     }
-    if (!Ember.isEmpty(data)) {
-      this.store.persist(data);
-    }
+    this.store.persist(data);
   },
 
   /**
@@ -359,7 +356,7 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     @method bindToStoreEvents
     @private
   */
-  bindToStoreEvents: function() {
+  bindToStoreEvents: Ember.observer('store', function() {
     var _this = this;
     this.store.on('sessionDataUpdated', function(content) {
       if (Configuration.logDebugMessages) {
@@ -367,17 +364,20 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
         Ember.Logger.debug(content);
       }
 
-      var authenticator = content.authenticator;
+      var authenticator = (content.secure || {}).authenticator;
       if (!!authenticator) {
-        delete content.authenticator;
-        _this.container.lookup(authenticator).restore(content).then(function(content) {
-          _this.setup(authenticator, content, true);
+        delete content.secure.authenticator;
+        _this.container.lookup(authenticator).restore(content.secure).then(function(secureContent) {
+          _this.set('content', content);
+          _this.setup(authenticator, secureContent, true);
         }, function() {
+          _this.set('content', content);
           _this.clear(true);
         });
       } else {
+        _this.set('content', content);
         _this.clear(true);
       }
     });
-  }.observes('store')
+  })
 });
