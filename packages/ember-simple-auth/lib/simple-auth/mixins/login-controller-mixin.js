@@ -47,6 +47,11 @@ export default Ember.Mixin.create(AuthenticationControllerMixin, {
     */
     authenticate: function() {
       Ember.deprecate("The LoginControllerMixin is deprecated. Use the session's authenticate method directly instead.");
+
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside LoginControllerMixin#authenticate');
+      }
+
       var data = this.getProperties('identification', 'password');
       this.set('password', null);
       return this._super(data);

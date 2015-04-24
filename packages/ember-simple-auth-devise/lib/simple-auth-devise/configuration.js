@@ -4,7 +4,8 @@ var defaults = {
   serverTokenEndpoint:         '/users/sign_in',
   resourceName:                'user',
   tokenAttributeName:          'token',
-  identificationAttributeName: 'email'
+  identificationAttributeName: 'email',
+  logDebugMessages:            false
 };
 
 /**
@@ -72,6 +73,17 @@ export default {
     @default 'email'
   */
   identificationAttributeName: defaults.identificationAttributeName,
+
+  /**
+    Whether to log debug messages to the console
+
+    @property logDebugMessages
+    @readOnly
+    @static
+    @type Boolean
+    @default false
+  */
+  logDebugMessages: defaults.logDebugMessages,
 
   /**
     @method load

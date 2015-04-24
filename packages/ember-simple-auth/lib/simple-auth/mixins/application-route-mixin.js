@@ -129,6 +129,11 @@ export default Ember.Mixin.create({
     */
     authenticateSession: function() {
       Ember.deprecate('The authenticateSession action is deprecated. Use sessionRequiresAuthentication instead.');
+
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside ApplicationRouteMixin#authenticateSession' );
+      }
+
       this.send('sessionRequiresAuthentication');
     },
 
@@ -144,6 +149,10 @@ export default Ember.Mixin.create({
       @method actions.sessionAuthenticationSucceeded
     */
     sessionAuthenticationSucceeded: function() {
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside ApplicationRouteMixin#sessionAuthenticationSucceeded' );
+      }
+
       var attemptedTransition = this.get(Configuration.sessionPropertyName).get('attemptedTransition');
       if (attemptedTransition) {
         attemptedTransition.retry();
@@ -175,6 +184,9 @@ export default Ember.Mixin.create({
       @param {any} error The error the promise returned by the authenticator rejects with, see [`Authenticators.Base#authenticate`](#SimpleAuth-Authenticators-Base-authenticate)
     */
     sessionAuthenticationFailed: function(error) {
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside ApplicationRouteMixin#sessionAuthenticationFailed' );
+      }
     },
 
     /**
@@ -188,6 +200,11 @@ export default Ember.Mixin.create({
     */
     invalidateSession: function() {
       Ember.deprecate("The invalidateSession action is deprecated. Use the session's invalidate method directly instead.");
+
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside ApplicationRouteMixin#invalidateSession' );
+      }
+
       this.get(Configuration.sessionPropertyName).invalidate();
     },
 
@@ -207,6 +224,9 @@ export default Ember.Mixin.create({
       @method actions.sessionInvalidationSucceeded
     */
     sessionInvalidationSucceeded: function() {
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside ApplicationRouteMixin#sessionInvalidationSucceeded' );
+      }
       if (!Ember.testing) {
         window.location.replace(Configuration.applicationRootUrl);
       }
@@ -221,6 +241,9 @@ export default Ember.Mixin.create({
       @param {any} error The error the promise returned by the authenticator rejects with, see [`Authenticators.Base#invalidate`](#SimpleAuth-Authenticators-Base-invalidate)
     */
     sessionInvalidationFailed: function(error) {
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside ApplicationRouteMixin#sessionInvalidationFailed' );
+      }
     },
 
     /**
@@ -232,6 +255,9 @@ export default Ember.Mixin.create({
       @method actions.authorizationFailed
     */
     authorizationFailed: function() {
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside ApplicationRouteMixin#authorizationFailed' );
+      }
       if (this.get(Configuration.sessionPropertyName).get('isAuthenticated')) {
         this.get(Configuration.sessionPropertyName).invalidate();
       }

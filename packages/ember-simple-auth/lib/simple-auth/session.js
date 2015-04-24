@@ -1,3 +1,5 @@
+import Configuration from './configuration';
+
 /**
   __The session provides access to the current authentication state as well as
   any data the authenticator resolved with__ (see
@@ -158,14 +160,26 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     var args          = Array.prototype.slice.call(arguments);
     var authenticator = args.shift();
     Ember.assert('Session#authenticate requires the authenticator factory to be specified, was "' + authenticator + '"!', !Ember.isEmpty(authenticator));
+    if (Configuration.logDebugMessages) {
+      Ember.Logger.debug('** Ember Simple Auth ** Inside Session#authenticate: authenticator = ');
+      Ember.Logger.debug(authenticator);
+    }
+
     var _this            = this;
     var theAuthenticator = this.container.lookup(authenticator);
     Ember.assert('No authenticator for factory "' + authenticator + '" could be found!', !Ember.isNone(theAuthenticator));
     return new Ember.RSVP.Promise(function(resolve, reject) {
       theAuthenticator.authenticate.apply(theAuthenticator, args).then(function(content) {
+        if (Configuration.logDebugMessages) {
+          Ember.Logger.debug('** Ember Simple Auth ** Inside Session#authenticate: authentication success: content = ');
+          Ember.Logger.debug(content);
+        }
         _this.setup(authenticator, content, true);
         resolve();
       }, function(error) {
+        if (Configuration.logDebugMessages) {
+          Ember.Logger.debug('** Ember Simple Auth ** Inside Session#authenticate: authentication failure: error = ' + error );
+        }
         _this.clear();
         _this.trigger('sessionAuthenticationFailed', error);
         reject(error);
@@ -192,15 +206,25 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     @return {Ember.RSVP.Promise} A promise that resolves when the session was invalidated successfully
   */
   invalidate: function() {
+    if (Configuration.logDebugMessages) {
+      Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invalidate' );
+    }
+
     Ember.assert('Session#invalidate requires the session to be authenticated!', this.get('isAuthenticated'));
     var _this = this;
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var authenticator = _this.container.lookup(_this.authenticator);
       authenticator.invalidate(_this.content.secure).then(function() {
+        if (Configuration.logDebugMessages) {
+          Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invalidate: invalidation succeeded' );
+        }
         authenticator.off('sessionDataUpdated');
         _this.clear(true);
         resolve();
       }, function(error) {
+        if (Configuration.logDebugMessages) {
+          Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invalidate: invalidation failed: error = ' + error );
+        }
         _this.trigger('sessionInvalidationFailed', error);
         reject(error);
       });
@@ -212,6 +236,10 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     @private
   */
   restore: function() {
+    if (Configuration.logDebugMessages) {
+      Ember.Logger.debug('** Ember Simple Auth ** Inside Session#restore' );
+    }
+
     var _this = this;
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var restoredContent = _this.store.restore();
@@ -237,6 +265,11 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     @private
   */
   setup: function(authenticator, secureContent, trigger) {
+    if (Configuration.logDebugMessages) {
+      Ember.Logger.debug('** Ember Simple Auth ** Inside Session#setup: trigger = ' + trigger + ', secureContent = ');
+      Ember.Logger.debug(secureContent);
+    }
+
     trigger = !!trigger && !this.get('isAuthenticated');
     this.beginPropertyChanges();
     this.setProperties({
@@ -257,6 +290,10 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     @private
   */
   clear: function(trigger) {
+    if (Configuration.logDebugMessages) {
+      Ember.Logger.debug('** Ember Simple Auth ** Inside Session#clear: trigger = ' + trigger );
+    }
+
     trigger = !!trigger && this.get('isAuthenticated');
     this.beginPropertyChanges();
     this.setProperties({
@@ -304,6 +341,11 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     authenticator.off('sessionDataUpdated');
     authenticator.off('sessionDataInvalidated');
     authenticator.on('sessionDataUpdated', function(content) {
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside Session#bindToAuthenticatorEvents: responding to sessionDataUpdated event from authenticator: content = ');
+        Ember.Logger.debug(content);
+      }
+
       _this.setup(_this.authenticator, content);
     });
     authenticator.on('sessionDataInvalidated', function(content) {
@@ -318,6 +360,11 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
   bindToStoreEvents: Ember.observer('store', function() {
     var _this = this;
     this.store.on('sessionDataUpdated', function(content) {
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside Session#bindToStoreEvents: responding to sessionDataUpdated event from store: content = ');
+        Ember.Logger.debug(content);
+      }
+
       var authenticator = (content.secure || {}).authenticator;
       if (!!authenticator) {
         delete content.secure.authenticator;

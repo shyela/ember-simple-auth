@@ -58,14 +58,32 @@ function registerFactories(application) {
 }
 
 function ajaxPrefilter(options, originalOptions, jqXHR) {
+  if (Configuration.logDebugMessages) {
+    Ember.Logger.debug('** Ember Simple Auth ** Inside ajaxPrefilter: url = ' + options.url);
+  }
+
   if (shouldAuthorizeRequest(options)) {
+    if (Configuration.logDebugMessages) {
+      Ember.Logger.debug('** Ember Simple Auth ** Inside ajaxPrefilter: sending request to authorizer: authorizer = ');
+      Ember.Logger.debug(ajaxPrefilter.authorizer);
+    }
+
     jqXHR.__simple_auth_authorized__ = true;
     ajaxPrefilter.authorizer.authorize(jqXHR, options);
   }
 }
 
 function ajaxError(event, jqXHR, setting, exception) {
+  if (Configuration.logDebugMessages) {
+    Ember.Logger.debug('** Ember Simple Auth ** Inside ajaxError: jqXHR = ');
+    Ember.Logger.debug(jqXHR);
+  }
+
   if (!!jqXHR.__simple_auth_authorized__ && jqXHR.status === 401) {
+    if (Configuration.logDebugMessages) {
+      Ember.Logger.debug('** Ember Simple Auth ** Inside ajaxError: request authorization was failed: authorizer' );
+    }
+
     ajaxError.session.trigger('authorizationFailed');
   }
 }
@@ -99,6 +117,10 @@ export default function(container, application) {
     ajaxError.session = session;
 
     if (!didSetupAjaxHooks) {
+      if (Configuration.logDebugMessages) {
+        Ember.Logger.debug('** Ember Simple Auth ** Inside setup: configuring ajax hooks for authorization' );
+      }
+
       Ember.$.ajaxPrefilter('+*', ajaxPrefilter);
       Ember.$(document).ajaxError(ajaxError);
       didSetupAjaxHooks = true;
