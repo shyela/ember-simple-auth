@@ -1,3 +1,34 @@
+# 0.8.0-beta.2
+
+* Ember Simple Auth now uses the application's `register` and `inject` methods
+  instead of the container's, see #462.
+* A bug in the OAuth 2.0 authorizer was fixed that prevented requests from
+  actually being authorized, see #483.
+* Changed the way the test helpers are loaded to prevent JSHint errors, see
+  #478.
+* Better implementation for detection of changes in the session store, see
+  #469.
+
+# 0.8.0-beta.1
+
+* __[BREAKING]__ The devise package's `identificationAttributeName` property
+  now defaults to `email`, see #456.
+* The secure session data is now stored under the special key `secure`, see
+  #414. This makes sure that the session isn't cleared completely on logout but
+  only the `secure` key instead. This is a __[BREAKING]__ change if you're
+  using a custom authorizer as that must fetch the token etc. from the
+  session's `secure` key now.
+* The cookie session store will now only expire on inactivity - as long as the
+  session is active, the cookie's expiration time will frequently be updated,
+  see #451.
+* The `LoginControllerMixin` and `AuthenticationControllerMixin` mixins are now
+  deprecated. The `invalidateSession` and `authenticateSession` actions in the
+  `ApplicationRouteMixin` mixin have been deprecated as well.
+  `authenticateSession` is replaced by the new `sessionRequiresAuthentication`
+  action, see #467.
+* The `AuthenticatedRouteMixin` mixin will now correctly return upstream
+  `beforeModel` promises, see #464.
+
 # 0.7.3
 
 * __[BREAKING]__ The name of the token attribute used by the devise

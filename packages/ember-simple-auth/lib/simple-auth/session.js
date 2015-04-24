@@ -212,7 +212,7 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
     var _this = this;
     return new Ember.RSVP.Promise(function(resolve, reject) {
       var authenticator = _this.container.lookup(_this.authenticator);
-      authenticator.invalidate(_this.content).then(function() {
+      authenticator.invalidate(_this.content.secure).then(function() {
         if (Configuration.logDebugMessages) {
           Ember.Logger.debug('** Ember Simple Auth ** Inside Session#invalidate: invalidation succeeded' );
         }
@@ -269,7 +269,7 @@ export default Ember.ObjectProxy.extend(Ember.Evented, {
       Ember.Logger.debug('** Ember Simple Auth ** Inside Session#setup: trigger = ' + trigger + ', content = ');
       Ember.Logger.debug(content);
     }
-    
+
     this.beginPropertyChanges();
     this.setProperties({
       isAuthenticated: true,
